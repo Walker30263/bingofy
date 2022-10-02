@@ -118,7 +118,7 @@ io.on("connection", (socket) => {
                     if (err) {
                       console.log(err);
                     } else {
-                      socket.emit("redirectToDashboard", token);
+                      socket.emit("redirectToDashboard", token, data.access_token);
                     }
                   });
                 }
@@ -133,13 +133,69 @@ io.on("connection", (socket) => {
                     if (err) {
                       console.log(err);
                     } else {
-                      socket.emit("redirectToDashboard", token);
+                      socket.emit("redirectToDashboard", token, data.access_token);
                     }
                   });
                 }
               });
             }
           }
+        });
+      }
+    });
+  });
+
+  socket.on("getBingoCardsData", (token) => {
+    jwt.verify(token, process.env["JWT_PRIVATE_KEY"], (err, user) => {
+      if (err) {
+        socket.emit("redirectToHomepage");
+      } else {
+        let usersDb = new sqlite3.Database(__dirname + "/database/users.db");
+
+        usersDb.get("SELECT bingo_card, bingo_responses, bingo_cards_archive FROM users WHERE spotify_id = ?", [user.id], function(err, row) {
+          usersDb.close();
+          if (err) {
+            console.log(row);
+          } else {
+            socket.emit("bingoCardsData", row);
+          }
+        });
+      }
+    });
+  });
+
+  socket.on("getTopArtists", (token, spotifyAccessToken) => {
+    jwt.verify(token, process.env["JWT_PRIVATE_KEY"], async (err, user) => {
+      if (err) {
+        socket.emit("redirectToHomepage");
+      } else {
+        let topArtists = await fetch('https://api.spotify.com/v1/me/top/artists?time_range=medium_term&limit=24', {
+          headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${spotifyAccessToken}`
+          }
+        }).then(response => response.json());
+
+        let bingoArtists = [];
+        
+        topArtists.items.forEach(artist => {
+          bingoArtists.push(artist.name);
+        });
+
+        if (bingoArtists.length < 24) {
+          socket.emit("notEnoughArtists");
+        } else {
+          socket.emit("topArtists", bingoArtists);
+        }
+
+        let usersDb = new sqlite3.Database(__dirname + "/database/users.db");
+
+        usersDb.run(`UPDATE users SET bingo_card = ? WHERE spotify_id = ?`, [JSON.stringify(bingoArtists), user.id], function(err) {
+          if (err) {
+            console.log(err);
+          }
+          usersDb.close();
         });
       }
     });

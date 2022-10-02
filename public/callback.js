@@ -15,3 +15,9 @@ window.onload = function() {
 socket.on("loginError", () => {
   window.location.href = "/";
 });
+
+socket.on("redirectToDashboard", (token, spotifyAccessToken) => {
+  localStorage.setItem("token", token);
+  localStorage.setItem("spotifyAccessToken", spotifyAccessToken);
+  window.location.href = "/dashboard";
+});

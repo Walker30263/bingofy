@@ -15,12 +15,35 @@
     <link rel="mask-icon" href="/assets/favicon_package/safari-pinned-tab.svg" color="#5bbad5">
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
-    <title>Logging in...</title>
+    <title>Dashboard</title>
     <link rel="stylesheet" href="/dashboard.css">
     <script src="/dashboard.js" defer></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/alertify.min.js"></script>
   </head>
   <body>
-    
+    <div id="loadingContainer">
+      <h1>Loading Dashboard...</h1>
+      <div class="loader"></div>
+    </div>
+    <div id="everythingElseContainer">
+      <h1>Dashboard</h1>
+      <div id="cardContainer" class="contentTheme">
+        <div id="bingoCardContainer">
+          <h1>Your Card (scrambled when other people open it)</h1>
+          
+          <div id="shareCardContainer">
+            <p id="bingoCardLink"></p>
+            <button id="copyLinkToClipboard" class="secondaryContentTheme">Share</button>
+          </div>
+        </div>
+        <button id="createCard" class="secondaryContentTheme">Create Card</button>
+        <div id="creatingBingoContainer">
+          <h1>Creating Music Bingo Card...</h1>
+          <div class="loader"></div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
