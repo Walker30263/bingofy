@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa&family=Noto+Sans+Avestan&display=swap');
+
+:root {
+  --page-bg-color: #321a47;
+  --page-text-color: #FFFFFF;
+  --content-bg-color: #97bbe8;
+  --content-text-color: #000000;
+  --secondary-content-bg-color: #743eac;
+  --secondary-content-text-color: #FFFFFF;
+}
+
+body {
+  background-color: var(--page-bg-color);
+  color: var(--page-text-color);
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.contentTheme {
+  background-color: var(--content-bg-color);
+  color: var(--content-text-color);
+}
+
+.secondaryContentTheme {
+  background-color: var(--secondary-content-bg-color);
+  color: var(--secondary-content-text-color);
+}

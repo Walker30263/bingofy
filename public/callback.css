@@ -1,0 +1,26 @@
+@import '/theme.css';
+
+* {
+  text-align: center;
+  font-family: 'Comfortaa', cursive;
+}
+
+h1 {
+  margin-top: 20vh;
+  margin-bottom: 5vh;
+}
+
+.loader {
+  border: 16px solid var(--secondary-content-text-color);
+  border-top: 16px solid var(--content-bg-color);
+  border-radius: 50%;
+  width: 150px;
+  height: 150px;
+  margin: auto;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
