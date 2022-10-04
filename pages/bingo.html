@@ -15,29 +15,34 @@
     <link rel="mask-icon" href="/assets/favicon_package/safari-pinned-tab.svg" color="#5bbad5">
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="/dashboard.css">
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/alertify.min.css"/>
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/themes/default.min.css"/>
-    <script src="/dashboard.js" defer></script>
+    <title>Bingo</title>
+    <link rel="stylesheet" href="/bingo.css">
+    <script src="/bingo.js" defer></script>
     <script src="/fitty.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/alertify.min.js"></script>
   </head>
   <body>
-    <div id="loadingContainer">
-      <h1>Loading Dashboard...</h1>
+    <div id="loadingBingoContainer">
+      <h1>Loading Music Bingo Card...</h1>
       <div class="loader"></div>
     </div>
-    <div id="everythingElseContainer">
-      <div id="shareCardContainer">
-        <p id="bingoCardLink"></p>
-        <button id="copyLinkToClipboard" class="secondaryContentTheme">Share 🔗</button>
+    <div id="invalidContainer">
+      <h1>Invalid link.</h1>
+      <h2>Sorry, the bingo link that you have received is invalid.</h2>
+      <p id="invalidSoRedirecting">You will be redirected to the main page in 10 seconds.</p>
+    </div>
+    <div id="bingoContainer">
+      <h1><span class="bingoOwner"></span>'s Bingofy</h1>
+      <div id="askForNameContainer" class="contentTheme">
+        <h2><span class="bingoOwner"></span> has invited you to fill out their Bingofy sheet!</h2>
+        <h3>Please enter your name or a username so that they know who's filling this out!</h3>
+        <input id="name" autocomplete="off" class="secondaryContentTheme" placeholder="Name...">
+        <button id="next" class="secondaryContentTheme">Next</button>
       </div>
       <div id="cardContainer" class="contentTheme">
         <div id="bingoCardContainer">
-          <h1>Your Card</h1>
+          <h3>Which artists do you have in common with <span class="bingoOwner"></span>?</h3>
           <table id="bingo">
             <tr>
               <td><div class="content secondaryContentTheme"><div id="bingo_index_0"></div></div></td>
@@ -56,7 +61,7 @@
             <tr>
               <td><div class="content secondaryContentTheme"><div id="bingo_index_10"></div></div></td>
               <td><div class="content secondaryContentTheme"><div id="bingo_index_11"></div></div></td>
-              <td><div class="content secondaryContentTheme"><div id="bingo_index_12"></div></div></td>
+              <td class="selected"><div class="content secondaryContentTheme"><div id="bingo_index_12"></div></div></td>
               <td><div class="content secondaryContentTheme"><div id="bingo_index_13"></div></div></td>
               <td><div class="content secondaryContentTheme"><div id="bingo_index_14"></div></div></td>
             </tr>
@@ -75,12 +80,21 @@
               <td><div class="content secondaryContentTheme"><div id="bingo_index_24"></div></div></td>
             </tr>
           </table>
+          <button id="submit" class="secondaryContentTheme">Submit</button>
         </div>
-        <button id="createCard" class="secondaryContentTheme">Create Card</button>
-        <div id="creatingBingoContainer">
-          <h1>Creating Music Bingo Card...</h1>
-          <div class="loader"></div>
-        </div>
+      </div>
+    </div>
+    <div id="thanksForUsingThis">
+      <h2>Thanks for filling out <span class="bingoOwner"></span>'s Bingofy!</h2>
+      <a href="/" class="contentTheme">Make your own!</a>
+    </div>
+    <div id="footer" class="footer" class="secondaryContentTheme">
+      <p class="footer-text-left">
+        Made with ☕❤
+      </p>
+      <div class="footer-content-right">
+        <a href="https://github.com/Walker30263"><img src="/assets/socials/github.png" class="icon-style" alt="GitHub icon"></a>
+        <a href="https://www.instagram.com/surjo_uwu"><img src="/assets/socials/instagram.png" class="icon-style" alt="Instagram icon"></a>
       </div>
     </div>
   </body>

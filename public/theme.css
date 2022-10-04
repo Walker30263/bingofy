@@ -24,4 +24,18 @@ body {
 .secondaryContentTheme {
   background-color: var(--secondary-content-bg-color);
   color: var(--secondary-content-text-color);
+  border-color: var(--content-text-color);
+}
+
+.secondaryContentTheme::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: var(--secondary-content-text-color);
+  opacity: 1; /* Firefox */
+}
+
+.secondaryContentTheme:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: var(--secondary-content-text-color);
+}
+
+.secondaryContentTheme::-ms-input-placeholder { /* Microsoft Edge */
+  color: var(--secondary-content-text-color);
 }

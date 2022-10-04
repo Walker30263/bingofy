@@ -25,6 +25,10 @@ app.get('/dashboard', (req, res) => {
   res.sendFile(__dirname + "/pages/dashboard.html");
 });
 
+app.get('/bingo/:invite', (req, res) => {
+  res.sendFile(__dirname + "/pages/bingo.html");
+});
+
 //THIS HAS TO BE KEPT AT THE END OF THE ROUTING SECTION OF THE CODE
 app.get('*', (req, res) => { //if user tries to go to a random subpage that doesn't exist,
   res.redirect('/'); //redirect them to the home page
@@ -46,12 +50,13 @@ usersDb.serialize(() => {
     display_name TEXT,
     bingo_card TEXT,
     bingo_responses TEXT,
-    bingo_cards_archive TEXT
+    bingo_cards_archive TEXT,
+    bingo_card_invite TEXT UNIQUE
   )`
   );
 
   //logging database, uncomment following code to log profiles in console at runtime:
-  usersDb.all(`SELECT spotify_id, display_name, bingo_card, bingo_responses, bingo_cards_archive FROM users`, [], (err, rows) => {
+  usersDb.all(`SELECT spotify_id, display_name, bingo_card, bingo_responses, bingo_cards_archive, bingo_card_invite FROM users`, [], (err, rows) => {
     if (err) {
       console.log(err);
     } else {
@@ -109,7 +114,7 @@ io.on("connection", (socket) => {
             usersDb.close();
           } else {
             if (rows.length === 0) { //if there aren't any (they're a new user), add them to the database
-              usersDb.run(`INSERT INTO users (spotify_id, display_name, bingo_card, bingo_responses, bingo_cards_archive) VALUES(?, ?, ?, ?, ?)`, [profile.id, profile.display_name, "[]", "{}", "[]"], function(err) {
+              usersDb.run(`INSERT INTO users (spotify_id, display_name, bingo_card, bingo_responses, bingo_cards_archive, bingo_card_invite) VALUES(?, ?, ?, ?, ?, ?)`, [profile.id, profile.display_name, "[]", "{}", "[]", profile.id], function(err) {
                 usersDb.close();
                 if (err) {
                   console.log(err);
@@ -152,7 +157,7 @@ io.on("connection", (socket) => {
       } else {
         let usersDb = new sqlite3.Database(__dirname + "/database/users.db");
 
-        usersDb.get("SELECT bingo_card, bingo_responses, bingo_cards_archive FROM users WHERE spotify_id = ?", [user.id], function(err, row) {
+        usersDb.get("SELECT bingo_card, bingo_responses, bingo_cards_archive, bingo_card_invite FROM users WHERE spotify_id = ?", [user.id], function(err, row) {
           usersDb.close();
           if (err) {
             console.log(row);
@@ -186,7 +191,7 @@ io.on("connection", (socket) => {
         if (bingoArtists.length < 24) {
           socket.emit("notEnoughArtists");
         } else {
-          socket.emit("topArtists", bingoArtists);
+          
         }
 
         let usersDb = new sqlite3.Database(__dirname + "/database/users.db");
@@ -194,9 +199,75 @@ io.on("connection", (socket) => {
         usersDb.run(`UPDATE users SET bingo_card = ? WHERE spotify_id = ?`, [JSON.stringify(bingoArtists), user.id], function(err) {
           if (err) {
             console.log(err);
+            usersDb.close();
+          } else {
+            usersDb.get(`SELECT bingo_card_invite FROM users WHERE spotify_id = ?`, [user.id], function(err, row) {
+              if (err) {
+                console.log(err);
+                usersDb.close();
+              } else {
+                socket.emit("topArtists", bingoArtists, row.bingo_card_invite);
+              }
+            });
           }
-          usersDb.close();
         });
+      }
+    });
+  });
+
+  socket.on("requestCustomInviteCode", (token, requestedInviteCode) => {
+    if (isAlphaNumeric(requestedInviteCode)) {
+      jwt.verify(token, process.env["JWT_PRIVATE_KEY"], (err, user) => {
+        if (err) {
+          socket.emit("redirectToHomepage");
+        } else {
+          let usersDb = new sqlite3.Database(__dirname + "/database/users.db");
+  
+          usersDb.get("SELECT display_name FROM users WHERE bingo_card_invite = ?", [requestedInviteCode], function(err, row) {
+            if (err) {
+              console.log(err);
+              usersDb.close();
+            } else {
+              if (row) {
+                usersDb.close();
+                socket.emit("error", "Invite Code Taken", "Sorry, another user has chosen that invite code for their Bingofy. Please request a different custom invite code, or stick with your Spotify username for your invite code.");
+              } else {
+                usersDb.run("UPDATE users SET bingo_card_invite = ? WHERE spotify_id = ?", [requestedInviteCode, user.id], function(err) {
+                  usersDb.close();
+                  if (err) {
+                    console.log(err);
+                  }
+                  socket.emit("updatedInviteCode", requestedInviteCode);
+                });
+              }
+            }
+          });
+        }
+      });
+    } else {
+      socket.emit("error", "Invalid Invite Code Request", "Your invite code must be alphanumeric and cannot contain any spaces!");
+    }
+  });
+
+  socket.on("getBingoCardFromInvite", (invite) => {
+    let usersDb = new sqlite3.Database(__dirname + "/database/users.db");
+
+    usersDb.get(`SELECT display_name, bingo_card FROM users WHERE bingo_card_invite = ?`, [invite], function(err, row) {
+      usersDb.close();
+      
+      if (err) {
+        console.log(err);
+      } else {
+        if (row) {
+          let arr = JSON.parse(row.bingo_card);
+          shuffleArray(arr); //shuffle bingo card just for fun
+          
+          row.bingo_card = JSON.stringify(arr); //stringify for security purposes or whatever idk luna said to
+          
+          socket.emit("bingoCardFromInvite", row);
+        } else {
+          socket.emit("invalidBingoCardInvite");
+        }
       }
     });
   });
@@ -205,3 +276,14 @@ io.on("connection", (socket) => {
 server.listen(process.env['PORT'], () => {
   console.log("running <3");
 });
+
+//credit: https://stackoverflow.com/a/12646864
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+//credit: https://www.30secondsofcode.org/js/s/is-alpha-numeric
+let isAlphaNumeric = str => /^[a-z0-9]+$/gi.test(str);
