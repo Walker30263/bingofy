@@ -36,6 +36,36 @@ class BingoCard {
       document.getElementById(`bingo_index_${i}`).textContent = this.elements[i];
     }
   }
+
+  won() {
+    //if at least these squares are selected, they won:
+    let winningArrays = [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9], [10, 11, 12, 13, 14], [15, 16, 17, 18, 19], [20, 21, 22, 23, 24], [0, 5, 10, 15, 20], [1, 6, 11, 16, 21], [2, 7, 12, 17, 22], [3, 8, 13, 18, 23], [4, 9, 14, 19, 24], [0, 6, 12, 18, 24], [4, 8, 12, 16, 20]];
+
+    let won = false;
+
+    for (let i = 0; i < winningArrays.length; i++) {
+      if (this.isSelected(winningArrays[i])) {
+        won = true;
+        break;
+      }
+    }
+
+    return won;
+  }
+
+  //input is an array of indexes to check, only returns true if ALL are crossed
+  isSelected(arr) {
+    let result = true;
+
+    for (let i = 0; i < arr.length; i++) {
+      if (!this.crossed.includes(arr[i])) {
+        result = false;
+        break;
+      }
+    }
+
+    return result;
+  }
 }
 
 var bc;
@@ -47,6 +77,9 @@ let btnCreateCard = document.getElementById("createCard");
 let bingoCardContainer = document.getElementById("bingoCardContainer");
 let btnCopyLinkToClipboard = document.getElementById("copyLinkToClipboard");
 let bingoCardLink = document.getElementById("bingoCardLink");
+let noResponsesYetContainer = document.getElementById("noResponsesYetContainer");
+let responseContainer = document.getElementById("responseContainer");
+let btnRefreshResponses = document.getElementById("refreshResponses");
 
 window.onload = function() {
   let token = localStorage.getItem("token");
@@ -62,6 +95,8 @@ window.onload = function() {
 socket.on("bingoCardsData", (data) => {
   loadingContainer.style.display = "none";
   everythingElseContainer.style.display = "block";
+
+  console.log(data);
   
   if (data.bingo_card === "[]") { //aka empty JSON array
     btnCreateCard.style.display = "block";
@@ -70,8 +105,28 @@ socket.on("bingoCardsData", (data) => {
     bc.print();
     bingoCardLink.textContent = `bingofy.tk/bingo/${data.bingo_card_invite}`;
     bingoCardContainer.style.display = "block";
+    btnCopyLinkToClipboard.style.display = "inline-block";
   }
+
+  handleBingoResponses(JSON.parse(data.bingo_responses));
 });
+
+btnRefreshResponses.addEventListener("click", function() {
+  let token = localStorage.getItem("token");
+  socket.emit("requestBingoResponses", token);
+});
+
+socket.on("updatedBingoResponses", function(responses) {
+  handleBingoResponses(JSON.parse(responses));
+});
+
+function handleBingoResponses(responses) {
+  if (responses.length === 0) {
+    noResponsesYetContainer.style.display = "block";
+  } else {
+    responseContainer.style.display = "block";
+  }
+}
 
 socket.on("redirectToHomepage", () => {
   window.location.href = "/";
@@ -92,6 +147,7 @@ socket.on("topArtists", (topArtists, invite) => {
   bc = new BingoCard(topArtists);
   bc.print();
   bingoCardLink.textContent = `bingofy.tk/bingo/${invite}`;
+  btnCopyLinkToClipboard.style.display = "inline-block";
   creatingBingoContainer.style.display = "none";
   bingoCardContainer.style.display = "block";
 });

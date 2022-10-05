@@ -114,7 +114,7 @@ io.on("connection", (socket) => {
             usersDb.close();
           } else {
             if (rows.length === 0) { //if there aren't any (they're a new user), add them to the database
-              usersDb.run(`INSERT INTO users (spotify_id, display_name, bingo_card, bingo_responses, bingo_cards_archive, bingo_card_invite) VALUES(?, ?, ?, ?, ?, ?)`, [profile.id, profile.display_name, "[]", "{}", "[]", profile.id], function(err) {
+              usersDb.run(`INSERT INTO users (spotify_id, display_name, bingo_card, bingo_responses, bingo_cards_archive, bingo_card_invite) VALUES(?, ?, ?, ?, ?, ?)`, [profile.id, profile.display_name, "[]", "[]", "[]", profile.id], function(err) {
                 usersDb.close();
                 if (err) {
                   console.log(err);
@@ -268,6 +268,30 @@ io.on("connection", (socket) => {
         } else {
           socket.emit("invalidBingoCardInvite");
         }
+      }
+    });
+  });
+
+  socket.on("requestBingoResponses", (token) => {
+    jwt.verify(token, process.env["JWT_PRIVATE_KEY"], (err, user) => {
+      if (err) {
+        socket.emit("redirectToHomepage");
+      } else {
+        let usersDb = new sqlite3.Database(__dirname + "/database/users.db");
+
+        usersDb.get(`SELECT bingo_responses FROM users WHERE spotify_id = ?`, [user.id], function(err, row) {
+          usersDb.close();
+
+          if (err) {
+            console.log(err);
+          } else {
+            if (row) {
+              socket.emit("updatedBingoResponses", row.bingo_responses);
+            } else {
+              socket.emit("redirectToHomepage");
+            }
+          }
+        });
       }
     });
   });

@@ -51,11 +51,16 @@ button:hover {
   100% { transform: rotate(360deg); }
 }
 
-#cardContainer {
+#cardContainer, #responsesContainer {
   margin: auto;
   padding-top: 20px;
   min-height: 60vh;
   border-radius: 12px;
+}
+
+#responsesContainer {
+  margin-top: 50px;
+  margin-bottom: 50px;
 }
 
 #bingoCardLink {
@@ -71,12 +76,12 @@ button:hover {
 }
 
 #copyLinkToClipboard {
-  display: inline-block;
+  display: none;
 }
 
 /* For mobile */
 @media only screen and (max-width: 550px) {
-  #cardContainer {
+  #cardContainer, #responsesContainer {
     width: 97vw;
   }
 
@@ -87,7 +92,7 @@ button:hover {
 
 /* For laptop/PC/wide screens */
 @media only screen and (min-width: 550px) {
-  #cardContainer {
+  #cardContainer, #responsesContainer {
     width: 60vw;
     padding-bottom: 30px;
   }
@@ -158,4 +163,15 @@ button:hover {
   justify-content: center;
   overflow-wrap: anywhere;
   hyphens: auto;
+}
+
+#responseContainer {
+  border: 2px solid;
+  display: none;
+}
+
+#noResponsesYetContainer {
+  display: none;
+  padding-top: 10vh;
+  padding-bottom: 10vh;
 }

@@ -1,3 +1,9 @@
+const swalAlertColor = {
+  iconColor: '#FFFFFF',
+  backgroundColor: '#321a47',
+  color: '#FFFFFF'
+};
+
 class BingoCard {
   //artists array must have 24 elements since 1 free spot
   //element at index 12 is free spot, which is crossed out by default
@@ -141,3 +147,34 @@ btnSubmit.addEventListener("click", function() {
   thanksForUsingThisContainer.style.display = "block";
   footer.style.display = "block";
 });
+
+//helper functions:
+socket.on("error", (errorTitle, errorMessage) => {
+  swalError(errorTitle, errorMessage);
+});
+
+socket.on("success", (successTitle, successMessage) => {
+  swalSuccess(successTitle, successMessage);
+});
+
+function swalError(errorTitle, errorMessage) {
+  Swal.fire({
+    title: errorTitle,
+    text: errorMessage,
+    icon: "error",
+    iconColor: swalAlertColor.iconColor,
+    background: swalAlertColor.backgroundColor,
+    color: swalAlertColor.color
+  });
+}
+
+function swalSuccess(successTitle, successMessage) {
+  Swal.fire({
+    title: successTitle,
+    text: successMessage,
+    icon: "success",
+    iconColor: swalAlertColor.iconColor,
+    background: swalAlertColor.backgroundColor,
+    color: swalAlertColor.color
+  });
+}
