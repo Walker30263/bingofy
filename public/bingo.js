@@ -70,6 +70,7 @@ class BingoCard {
 
 var socket = io();
 var bc;
+var alreadyWon = false;
 
 let footer = document.getElementById("footer");
 let loadingBingoContainer = document.getElementById("loadingBingoContainer");
@@ -124,6 +125,18 @@ socket.on("bingoCardFromInvite", (data) => {
     bingoSquares[i].parentNode.parentNode.addEventListener("click", function() {
       bingoSquares[i].parentNode.parentNode.classList.toggle("selected");
       bc.toggleCrossed(i);
+
+      if (!alreadyWon && bc.won()) { //if they haven't already "won" before, and they just won,
+        Swal.fire({
+          title: "Congrats!",
+          text: `You won! Click the "Continue" button to keep crossing off artists, or send your response to ${data.display_name} right now by clicking the submit button!`,
+          iconColor: swalAlertColor.iconColor,
+          background: swalAlertColor.backgroundColor,
+          color: swalAlertColor.color,
+          confirmButtonText: `Continue`
+        });
+        alreadyWon = true;
+      }
     });
   }
   
@@ -141,7 +154,7 @@ btnSubmit.addEventListener("click", function() {
   let url = window.location.href;
   let invite = url.substring(url.lastIndexOf('/') + 1).toLowerCase();
   
-  socket.emit("submitBingoCardResponse", invite, JSON.stringify(bc));
+  socket.emit("submitBingoCardResponse", invite, inputName.value, JSON.stringify(bc));
 
   bingoContainer.style.display = "none";
   thanksForUsingThisContainer.style.display = "block";

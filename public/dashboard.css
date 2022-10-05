@@ -22,7 +22,7 @@ button {
   border: 2px solid;
 }
 
-button:hover {
+button:hover:enabled {
   filter: brightness(1.1);
   cursor: pointer;
   transform: scale(1.05);
@@ -85,7 +85,7 @@ button:hover {
     width: 97vw;
   }
 
-  #bingo {
+  #bingo, #responseBingo {
     width: 100%;
   }
 }
@@ -97,7 +97,7 @@ button:hover {
     padding-bottom: 30px;
   }
 
-  #bingo {
+  #bingo, #responseBingo {
     width: 70%;
   }
 }
@@ -120,7 +120,7 @@ button:hover {
   display: none;
 }
 
-#bingo {
+#bingo, #responseBingo {
   margin: auto;
   -webkit-touch-callout: none; /* iOS Safari */
   -webkit-user-select: none; /* Safari */
@@ -174,4 +174,53 @@ button:hover {
   display: none;
   padding-top: 10vh;
   padding-bottom: 10vh;
+}
+
+#refreshResponses {
+  display: block;
+  margin: auto;
+  margin-top: 25px;
+}
+
+#responseBingo td {
+  width: 20%;
+  position: relative;
+  transition: 0.3s;
+}
+
+#responseBingo td:hover {
+  filter: brightness(110%);
+  border: 1px solid;
+}
+
+#responseBingo td:after {
+  content: '';
+  display: block;
+  margin-top: 100%;
+}
+
+#responseBingo td .content {
+  padding: 5px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#responseBingo td .content > div {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+#responseBingo td.selected {
+  filter: brightness(125%);
+}
+
+#previousResponse:disabled, #nextResponse:disabled {
+  filter: saturate(20%);
 }

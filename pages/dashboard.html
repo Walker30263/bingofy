@@ -24,6 +24,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/alertify.min.js"></script>
+    <script src="https://kit.fontawesome.com/60c2fdf9c3.js" crossorigin="anonymous"></script>
   </head>
   <body>
     <div id="loadingContainer">
@@ -32,12 +33,13 @@
     </div>
     <div id="everythingElseContainer">
       <div id="shareCardContainer">
-        <p id="bingoCardLink"></p>
-        <button id="copyLinkToClipboard" class="secondaryContentTheme">Share 🔗</button>
+        <p id="bingoCardLink" title="Right-click (or hold on mobile) to customize your share link..."></p>
+        <button id="copyLinkToClipboard" class="secondaryContentTheme" title="Right-click (or hold on mobile) to customize your share link...">Share 🔗</button>
       </div>
       <div id="cardContainer" class="contentTheme">
         <div id="bingoCardContainer">
           <h1>Your Card</h1>
+          <h3>(Shuffled for others when they fill it out using the Share link)</h3>
           <table id="bingo">
             <tr>
               <td><div class="content secondaryContentTheme"><div id="bingo_index_0"></div></div></td>
@@ -88,8 +90,47 @@
           <h2>No responses so far...</h2>
         </div>
         <div id="responseContainer">
-          
+          <h2 id="responseIndexDisplay"></h2>
+          <table id="responseBingo">
+            <tr>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_0"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_1"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_2"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_3"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_4"></div></div></td>
+            </tr>
+            <tr>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_5"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_6"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_7"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_8"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_9"></div></div></td>
+            </tr>
+            <tr>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_10"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_11"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_12"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_13"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_14"></div></div></td>
+            </tr>
+            <tr>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_15"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_16"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_17"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_18"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_19"></div></div></td>
+            </tr>
+            <tr>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_20"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_21"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_22"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_23"></div></div></td>
+              <td><div class="content secondaryContentTheme"><div id="response_bingo_index_24"></div></div></td>
+            </tr>
+          </table>
         </div>
+        <button id="previousResponse" class="secondaryContentTheme"><i class="fa-solid fa-arrow-left"></i> Previous</button>
+        <button id="nextResponse" class="secondaryContentTheme">Next <i class="fa-solid fa-arrow-right"></i></button>
         <button id="refreshResponses" class="secondaryContentTheme">Refresh</button>
       </div>
     </div>

@@ -1,3 +1,5 @@
+var socket = io();
+
 const swalAlertColor = {
   iconColor: '#FFFFFF',
   backgroundColor: '#321a47',
@@ -31,9 +33,13 @@ class BingoCard {
     }
   }
 
-  print() {
+  print(elementStart) {
     for (let i = 0; i < this.elements.length; i++) {
-      document.getElementById(`bingo_index_${i}`).textContent = this.elements[i];
+      document.getElementById(`${elementStart}_${i}`).textContent = this.elements[i];
+    }
+
+    for (let i = 0; i < this.crossed.length; i++) {
+      document.getElementById(`${elementStart}_${i}`).parentNode.parentNode.classList.add("selected");
     }
   }
 
@@ -68,8 +74,10 @@ class BingoCard {
   }
 }
 
+
 var bc;
-var socket = io();
+var bingoResponses;
+var bingoResponseIndex = 0;
 
 let loadingContainer = document.getElementById("loadingContainer");
 let everythingElseContainer = document.getElementById("everythingElseContainer");
@@ -80,6 +88,9 @@ let bingoCardLink = document.getElementById("bingoCardLink");
 let noResponsesYetContainer = document.getElementById("noResponsesYetContainer");
 let responseContainer = document.getElementById("responseContainer");
 let btnRefreshResponses = document.getElementById("refreshResponses");
+let responseIndexDisplay = document.getElementById("responseIndexDisplay");
+let btnNextResponse = document.getElementById("nextResponse");
+let btnPreviousResponse = document.getElementById("previousResponse");
 
 window.onload = function() {
   let token = localStorage.getItem("token");
@@ -95,14 +106,12 @@ window.onload = function() {
 socket.on("bingoCardsData", (data) => {
   loadingContainer.style.display = "none";
   everythingElseContainer.style.display = "block";
-
-  console.log(data);
   
   if (data.bingo_card === "[]") { //aka empty JSON array
     btnCreateCard.style.display = "block";
   } else {
     bc = new BingoCard(JSON.parse(data.bingo_card));
-    bc.print();
+    bc.print("bingo_index");
     bingoCardLink.textContent = `bingofy.tk/bingo/${data.bingo_card_invite}`;
     bingoCardContainer.style.display = "block";
     btnCopyLinkToClipboard.style.display = "inline-block";
@@ -118,14 +127,46 @@ btnRefreshResponses.addEventListener("click", function() {
 
 socket.on("updatedBingoResponses", function(responses) {
   handleBingoResponses(JSON.parse(responses));
+  Swal.fire({
+    title: "Reloaded responses!",
+    icon: "success",
+    iconColor: swalAlertColor.iconColor,
+    background: swalAlertColor.backgroundColor,
+    color: swalAlertColor.color
+  });
 });
 
+//"responses" has to be an actual array not a JSON.stringify-ied string
 function handleBingoResponses(responses) {
+  bingoResponses = responses;
+  
   if (responses.length === 0) {
     noResponsesYetContainer.style.display = "block";
   } else {
     responseContainer.style.display = "block";
+    displayBingoResponse(bingoResponseIndex);
   }
+}
+
+function displayBingoResponse(index) {
+  let response = bingoResponses[index];
+  responseIndexDisplay.textContent = `${response.responderName}'s Response (${index+1}/${bingoResponses.length})`;
+  if (index === 0) {
+    btnPreviousResponse.disabled = true;
+  } else {
+    btnPreviousResponse.disabled = false;
+  }
+
+  if (index === (bingoResponses.length - 1)) {
+    btnNextResponse.disabled = true;
+  } else {
+    btnNextResponse.disabled = false;
+  }
+
+  let rcData = JSON.parse(response.bingoCard);
+  
+  let responseCard = new BingoCard(rcData.elements, rcData.crossed);
+  responseCard.print("response_bingo_index");
 }
 
 socket.on("redirectToHomepage", () => {
@@ -145,7 +186,7 @@ socket.on("notEnoughArtists", function() {
 
 socket.on("topArtists", (topArtists, invite) => {
   bc = new BingoCard(topArtists);
-  bc.print();
+  bc.print("bingo_index");
   bingoCardLink.textContent = `bingofy.tk/bingo/${invite}`;
   btnCopyLinkToClipboard.style.display = "inline-block";
   creatingBingoContainer.style.display = "none";
@@ -195,6 +236,16 @@ async function requestNewInviteCodeSwal() {
 
 socket.on("updatedInviteCode", (newCode) => {
   bingoCardLink.textContent = `bingofy.tk/bingo/${newCode}`;
+});
+
+btnNextResponse.addEventListener("click", function() {
+  bingoResponseIndex++;
+  displayBingoResponse(bingoResponseIndex);
+});
+
+btnPreviousResponse.addEventListener("click", function() {
+  bingoResponseIndex--;
+  displayBingoResponse(bingoResponseIndex);
 });
 
 //helper functions:

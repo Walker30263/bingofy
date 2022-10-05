@@ -272,6 +272,36 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("submitBingoCardResponse", (inviteCode, responderName, response) => {
+    let usersDb = new sqlite3.Database(__dirname + "/database/users.db");
+
+    usersDb.get(`SELECT bingo_responses FROM users WHERE bingo_card_invite = ?`, [inviteCode], function(err, row) {
+      if (err) {
+        console.log(err);
+        usersDb.close();
+      } else {
+        if (row) {
+          let existingResponses = JSON.parse(row.bingo_responses);
+
+          existingResponses.push({
+            responderName: responderName,
+            bingoCard: response
+          });
+
+          usersDb.run(`UPDATE users SET bingo_responses = ? WHERE bingo_card_invite = ?`, [JSON.stringify(existingResponses), inviteCode], function(err, row) {
+            usersDb.close();
+            if (err) {
+              console.log(err);
+            }
+          });
+        } else {
+          socket.emit("error", "Invite Code Expired", "The invite code of the current bingo card has either expired or has been changed by the creator.");
+          usersDb.close();
+        }
+      }
+    });
+  });
+
   socket.on("requestBingoResponses", (token) => {
     jwt.verify(token, process.env["JWT_PRIVATE_KEY"], (err, user) => {
       if (err) {
