@@ -218,7 +218,7 @@ socket.on("topArtists", (topArtists, invite) => {
 });
 
 btnCopyLinkToClipboard.addEventListener("click", function() {
-  navigator.clipboard.writeText(bingoCardLink.textContent);
+  navigator.clipboard.writeText("https://" + bingoCardLink.textContent);
   alertify.notify('Copied to clipboard!', 'success', 5); 
 });
 

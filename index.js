@@ -45,7 +45,7 @@ let usersDb = new sqlite3.Database(__dirname + "/database/users.db", (err) => {
   }
 });
 
-usersDb.serialize(() => {
+/*usersDb.serialize(() => {
   usersDb.run(`CREATE TABLE IF NOT EXISTS users(
     spotify_id TEXT PRIMARY KEY,
     display_name TEXT,
@@ -56,7 +56,7 @@ usersDb.serialize(() => {
   )`
   );
 
-  //logging database, uncomment following code to log profiles in console at runtime:
+  //logging profiles at runtime
   usersDb.all(`SELECT spotify_id, display_name, bingo_card, bingo_responses, bingo_cards_archive, bingo_card_invite FROM users`, [], (err, rows) => {
     if (err) {
       console.log(err);
@@ -66,7 +66,7 @@ usersDb.serialize(() => {
       });
     }
   });
-});
+});*/
 
 usersDb.close((err) => {
   if (err) {
@@ -271,6 +271,25 @@ io.on("connection", (socket) => {
         }
       }
     });
+  });
+
+  socket.on("log", (loggingPassword) => {
+    if (loggingPassword === process.env["LOGGING_PASSWORD"]) {
+      let usersDb = new sqlite3.Database(__dirname + "/database/users.db");
+    
+      //logging profiles
+      usersDb.all(`SELECT spotify_id, display_name, bingo_card, bingo_responses, bingo_cards_archive, bingo_card_invite FROM users`, [], (err, rows) => {
+        if (err) {
+          console.log(err);
+        } else {
+          rows.forEach(row => {
+            console.log(row);
+          });
+        }
+      });
+  
+      usersDb.close();
+    }
   });
 });
 
