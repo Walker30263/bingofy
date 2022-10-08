@@ -12,6 +12,7 @@ const sqlite3 = require("sqlite3").verbose();
 const jwt = require('jsonwebtoken');
 
 app.use(express.static("public")); //client-side css and js files
+app.use(express.json()); //parse JSON in incoming requests
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + "/pages/index.html");
@@ -271,59 +272,65 @@ io.on("connection", (socket) => {
       }
     });
   });
+});
 
-  socket.on("submitBingoCardResponse", (inviteCode, responderName, response) => {
-    let usersDb = new sqlite3.Database(__dirname + "/database/users.db");
+app.post('/requestBingoResponses', (req, res) => {
+  jwt.verify(req.body.token, process.env["JWT_PRIVATE_KEY"], (err, user) => {
+    if (err) {
+      res.send({
+        error: "Invalid token."
+      });
+    } else {
+      let usersDb = new sqlite3.Database(__dirname + "/database/users.db");
 
-    usersDb.get(`SELECT bingo_responses FROM users WHERE bingo_card_invite = ?`, [inviteCode], function(err, row) {
-      if (err) {
-        console.log(err);
+      usersDb.get(`SELECT bingo_responses FROM users WHERE spotify_id = ?`, [user.id], function(err, row) {
         usersDb.close();
-      } else {
-        if (row) {
-          let existingResponses = JSON.parse(row.bingo_responses);
 
-          existingResponses.push({
-            responderName: responderName,
-            bingoCard: response
-          });
-
-          usersDb.run(`UPDATE users SET bingo_responses = ? WHERE bingo_card_invite = ?`, [JSON.stringify(existingResponses), inviteCode], function(err, row) {
-            usersDb.close();
-            if (err) {
-              console.log(err);
-            }
-          });
+        if (err) {
+          console.log(err);
         } else {
-          socket.emit("error", "Invite Code Expired", "The invite code of the current bingo card has either expired or has been changed by the creator.");
-          usersDb.close();
+          if (row) {
+            res.send({
+              data: row.bingo_responses
+            });
+          } else {
+            res.send({
+              error: "Database error."
+            });
+          }
         }
-      }
-    });
+      });
+    }
   });
+});
 
-  socket.on("requestBingoResponses", (token) => {
-    jwt.verify(token, process.env["JWT_PRIVATE_KEY"], (err, user) => {
-      if (err) {
-        socket.emit("redirectToHomepage");
-      } else {
-        let usersDb = new sqlite3.Database(__dirname + "/database/users.db");
+app.post('/submitBingoCardResponse', (req, res) => {
+  let usersDb = new sqlite3.Database(__dirname + "/database/users.db");
 
-        usersDb.get(`SELECT bingo_responses FROM users WHERE spotify_id = ?`, [user.id], function(err, row) {
+  usersDb.get(`SELECT bingo_responses FROM users WHERE bingo_card_invite = ?`, [req.body.inviteCode], function(err, row) {
+    if (err) {
+      console.log(err);
+      usersDb.close();
+    } else {
+      if (row) {
+        let existingResponses = JSON.parse(row.bingo_responses);
+
+        existingResponses.push({
+          responderName: req.body.responderName,
+          bingoCard: req.body.response
+        });
+
+        usersDb.run(`UPDATE users SET bingo_responses = ? WHERE bingo_card_invite = ?`, [JSON.stringify(existingResponses), req.body.inviteCode], function(err, row) {
           usersDb.close();
-
           if (err) {
             console.log(err);
-          } else {
-            if (row) {
-              socket.emit("updatedBingoResponses", row.bingo_responses);
-            } else {
-              socket.emit("redirectToHomepage");
-            }
           }
         });
+      } else {
+        socket.emit("error", "Invite Code Expired", "The invite code of the current bingo card has either expired or has been changed by the creator.");
+        usersDb.close();
       }
-    });
+    }
   });
 });
 

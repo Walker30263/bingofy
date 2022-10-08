@@ -57,3 +57,22 @@ button:hover {
 .icon-style:hover {
   height: 55px;
 }
+
+a {
+  color: inherit;
+  font-weight: bold;
+  transition: 0.25s;
+}
+
+a:hover {
+  font-weight: bolder;
+  filter: brightness(110%);
+  font-size: 1.2em;
+}
+
+p {
+  width: 70vw;
+  margin: auto;
+  margin-top: 25px;
+  line-height: 1.4em;
+}

@@ -85,7 +85,7 @@ let thanksForUsingThisContainer = document.getElementById("thanksForUsingThis");
 
 window.onload = function() {
   let url = window.location.href;
-  let invite = url.substring(url.lastIndexOf('/') + 1).toLowerCase();
+  let invite = url.substring(url.lastIndexOf('/') + 1);
 
   socket.emit("getBingoCardFromInvite", invite);
 }
@@ -152,10 +152,16 @@ btnNext.addEventListener("click", function() {
 
 btnSubmit.addEventListener("click", function() {
   let url = window.location.href;
-  let invite = url.substring(url.lastIndexOf('/') + 1).toLowerCase();
+  let invite = url.substring(url.lastIndexOf('/') + 1);
   
-  socket.emit("submitBingoCardResponse", invite, inputName.value, JSON.stringify(bc));
+  //socket.emit("submitBingoCardResponse", invite, inputName.value, JSON.stringify(bc));
 
+  fetchWrapper("POST", '/submitBingoCardResponse', {
+    inviteCode: invite, 
+    responderName: inputName.value, 
+    response: JSON.stringify(bc)
+  });
+  
   bingoContainer.style.display = "none";
   thanksForUsingThisContainer.style.display = "block";
   footer.style.display = "block";
@@ -190,4 +196,17 @@ function swalSuccess(successTitle, successMessage) {
     background: swalAlertColor.backgroundColor,
     color: swalAlertColor.color
   });
+}
+
+async function fetchWrapper(type = 'GET', url = '', data = {}) {
+  const response = await fetch(url, {
+    method: type,
+    credentials: 'include',
+    cache: 'no-cache',
+    headers: new Headers({
+      "content-type": "application/json"
+    }),
+    body: JSON.stringify(data)
+  });
+  return response.json(); //parses JSON response into JavaScript objects
 }

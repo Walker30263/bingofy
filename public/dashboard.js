@@ -9,11 +9,11 @@ const swalAlertColor = {
 class BingoCard {
   //artists array must have 24 elements since 1 free spot
   //element at index 12 is free spot, which is crossed out by default
-  constructor(artists, crossed = [12]) {
+  constructor(artists, crossed = [12], viewingResponse = false) {
     this.elements = [];
     
     for (let i = 0; i < artists.length; i++) {
-      if (i === 12) {
+      if ((i === 12) && !viewingResponse) {
         this.elements.push("FREE"); 
       }
 
@@ -36,10 +36,21 @@ class BingoCard {
   print(elementStart) {
     for (let i = 0; i < this.elements.length; i++) {
       document.getElementById(`${elementStart}_${i}`).textContent = this.elements[i];
+      //fitty(document.getElementById(`${elementStart}_${i}`).parentNode);
     }
 
     for (let i = 0; i < this.crossed.length; i++) {
-      document.getElementById(`${elementStart}_${i}`).parentNode.parentNode.classList.add("selected");
+      document.getElementById(`${elementStart}_${this.crossed[i]}`).parentNode.parentNode.classList.add("selected");
+    }
+  }
+
+  deletePrint(elementStart) {
+    for (let i = 0; i < this.elements.length; i++) {
+      document.getElementById(`${elementStart}_${i}`).textContent = "";
+    }
+
+    for (let i = 0; i < this.crossed.length; i++) {
+      document.getElementById(`${elementStart}_${this.crossed[i]}`).parentNode.parentNode.classList.remove("selected");
     }
   }
 
@@ -78,6 +89,7 @@ class BingoCard {
 var bc;
 var bingoResponses;
 var bingoResponseIndex = 0;
+var bc_ResponseView;
 
 let loadingContainer = document.getElementById("loadingContainer");
 let everythingElseContainer = document.getElementById("everythingElseContainer");
@@ -88,6 +100,8 @@ let bingoCardLink = document.getElementById("bingoCardLink");
 let noResponsesYetContainer = document.getElementById("noResponsesYetContainer");
 let responseContainer = document.getElementById("responseContainer");
 let btnRefreshResponses = document.getElementById("refreshResponses");
+let responderNameDisplay = document.getElementById("responderNameDisplay");
+let responseInfoDisplay = document.getElementById("responseInfoDisplay");
 let responseIndexDisplay = document.getElementById("responseIndexDisplay");
 let btnNextResponse = document.getElementById("nextResponse");
 let btnPreviousResponse = document.getElementById("previousResponse");
@@ -120,20 +134,25 @@ socket.on("bingoCardsData", (data) => {
   handleBingoResponses(JSON.parse(data.bingo_responses));
 });
 
-btnRefreshResponses.addEventListener("click", function() {
+btnRefreshResponses.addEventListener("click", async function() {
   let token = localStorage.getItem("token");
-  socket.emit("requestBingoResponses", token);
-});
-
-socket.on("updatedBingoResponses", function(responses) {
-  handleBingoResponses(JSON.parse(responses));
-  Swal.fire({
-    title: "Reloaded responses!",
-    icon: "success",
-    iconColor: swalAlertColor.iconColor,
-    background: swalAlertColor.backgroundColor,
-    color: swalAlertColor.color
+  
+  let newResponses = await fetchWrapper("POST", "/requestBingoResponses", {
+    token: token
   });
+
+  if (newResponses.error) {
+    window.location.href = "/";
+  } else {
+    handleBingoResponses(JSON.parse(newResponses.data));
+    Swal.fire({
+      title: "Reloaded responses!",
+      icon: "success",
+      iconColor: swalAlertColor.iconColor,
+      background: swalAlertColor.backgroundColor,
+      color: swalAlertColor.color
+    });
+  }
 });
 
 //"responses" has to be an actual array not a JSON.stringify-ied string
@@ -143,6 +162,7 @@ function handleBingoResponses(responses) {
   if (responses.length === 0) {
     noResponsesYetContainer.style.display = "block";
   } else {
+    noResponsesYetContainer.style.display = "none";
     responseContainer.style.display = "block";
     displayBingoResponse(bingoResponseIndex);
   }
@@ -150,7 +170,7 @@ function handleBingoResponses(responses) {
 
 function displayBingoResponse(index) {
   let response = bingoResponses[index];
-  responseIndexDisplay.textContent = `${response.responderName}'s Response (${index+1}/${bingoResponses.length})`;
+  
   if (index === 0) {
     btnPreviousResponse.disabled = true;
   } else {
@@ -165,8 +185,12 @@ function displayBingoResponse(index) {
 
   let rcData = JSON.parse(response.bingoCard);
   
-  let responseCard = new BingoCard(rcData.elements, rcData.crossed);
-  responseCard.print("response_bingo_index");
+  bc_ResponseView = new BingoCard(rcData.elements, rcData.crossed, true);
+  bc_ResponseView.print("response_bingo_index");
+
+  responderNameDisplay.innerHTML = response.responderName;
+  responseInfoDisplay.textContent = `'s Response - ${Math.round((rcData.crossed.length - 1)/24 * 100)}% Match`;
+  responseIndexDisplay.textContent = `${index+1} / ${bingoResponses.length}`;
 }
 
 socket.on("redirectToHomepage", () => {
@@ -240,11 +264,13 @@ socket.on("updatedInviteCode", (newCode) => {
 
 btnNextResponse.addEventListener("click", function() {
   bingoResponseIndex++;
+  bc_ResponseView.deletePrint("response_bingo_index");
   displayBingoResponse(bingoResponseIndex);
 });
 
 btnPreviousResponse.addEventListener("click", function() {
   bingoResponseIndex--;
+  bc_ResponseView.deletePrint("response_bingo_index");
   displayBingoResponse(bingoResponseIndex);
 });
 
@@ -277,6 +303,19 @@ function swalSuccess(successTitle, successMessage) {
     background: swalAlertColor.backgroundColor,
     color: swalAlertColor.color
   });
+}
+
+async function fetchWrapper(type = 'GET', url = '', data = {}) {
+  const response = await fetch(url, {
+    method: type,
+    credentials: 'include',
+    cache: 'no-cache',
+    headers: new Headers({
+      "content-type": "application/json"
+    }),
+    body: JSON.stringify(data)
+  });
+  return response.json(); //parses JSON response into JavaScript objects
 }
 
 //credit: https://www.30secondsofcode.org/js/s/is-alpha-numeric

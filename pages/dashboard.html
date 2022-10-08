@@ -90,7 +90,7 @@
           <h2>No responses so far...</h2>
         </div>
         <div id="responseContainer">
-          <h2 id="responseIndexDisplay"></h2>
+          <h2><span id="responderNameDisplay"></span><span id="responseInfoDisplay"></span></h2>
           <table id="responseBingo">
             <tr>
               <td><div class="content secondaryContentTheme"><div id="response_bingo_index_0"></div></div></td>
@@ -129,8 +129,11 @@
             </tr>
           </table>
         </div>
-        <button id="previousResponse" class="secondaryContentTheme"><i class="fa-solid fa-arrow-left"></i> Previous</button>
-        <button id="nextResponse" class="secondaryContentTheme">Next <i class="fa-solid fa-arrow-right"></i></button>
+        <div id="navResponsesContainer">
+          <button id="previousResponse" class="secondaryContentTheme" disabled><i class="fa-solid fa-arrow-left"></i> Previous</button>
+          <h2 id="responseIndexDisplay"></h2>
+          <button id="nextResponse" class="secondaryContentTheme" disabled>Next <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
         <button id="refreshResponses" class="secondaryContentTheme">Refresh</button>
       </div>
     </div>
